@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import EasyTipView
 
 class GenerateViewController: UIViewController {
     
@@ -69,6 +70,7 @@ extension GenerateViewController: UITableViewDelegate, UITableViewDataSource {
         cell.priceLabel.text = "price \(indexPath.row + 1) $"
         cell.countLabel.text = "count \(indexPath.row + 1)"
         cell.totalGainLabel.text = "gain \(indexPath.row + 1) kW/h"
+        cell.textTipView = "\(imagesForTableView[indexPath.row]) \n +\(indexPath.row) kW/h \n +\(indexPath.row) workers \n \(indexPath.row) days for bulding"
         cell.image.image = UIImage(named: "\(imagesForTableView[indexPath.row])")
         return cell
     }
@@ -78,6 +80,8 @@ extension GenerateViewController: UITableViewDelegate, UITableViewDataSource {
 class CustomCellGenerateVC: UITableViewCell {
     static var identifire = "CustomeCellGenerateVC"
 
+    var tipView: EasyTipView?
+    var textTipView: String = ""
     let image: UIImageView = {
         let img = UIImageView()
         return img
@@ -132,7 +136,7 @@ class CustomCellGenerateVC: UITableViewCell {
         
         contentView.addSubview(priceLabel)
         priceLabel.snp.makeConstraints { make in
-            make.width.equalTo(100)
+            make.width.equalTo(150)
             make.height.equalTo(25)
             make.top.equalTo(10)
             make.leading.equalTo(image.snp.trailing).offset(15)
@@ -154,18 +158,19 @@ class CustomCellGenerateVC: UITableViewCell {
             make.leading.equalTo(image.snp.trailing).offset(15)
         }
         
+        iconInform.isUserInteractionEnabled = true
+        iconInform.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapInfo)))
         contentView.addSubview(iconInform)
         iconInform.snp.makeConstraints { make in
             make.height.width.equalTo(25)
             make.top.equalTo(10)
-            make.trailing.equalTo(30)
-//            make.leading.equalTo(priceLabel.snp.trailing).offset(25)
+//            make.trailing.equalToSuperview().offset(30)
+            make.leading.equalTo(priceLabel.snp.trailing).offset(55)
         }
         
         contentView.snp.makeConstraints { make in
             make.height.equalTo(100)
         }
-        
     }
     
     required init?(coder: NSCoder) {
@@ -173,6 +178,24 @@ class CustomCellGenerateVC: UITableViewCell {
     }
     
     @objc func tapInfo() {
+        showTipView(forView: image, text: textTipView)
+    }
+    
+    func showTipView(forView: UIView, text: String) {
+        var preference = EasyTipView.Preferences()
+        preference.drawing.font = .systemFont(ofSize: 10, weight: .semibold)
+        preference.drawing.foregroundColor = .black
+        preference.drawing.backgroundColor = .systemGreen
+        preference.drawing.arrowPosition = .bottom
         
+        EasyTipView.globalPreferences = preference
+        
+        let easyTipView = EasyTipView(text: text, preferences: preference)
+        tipView = easyTipView
+        easyTipView.show(animated: true, forView: forView, withinSuperview: self.superview)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2), execute: {
+            easyTipView.dismiss()
+        })
     }
 }
